@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 
+st.write(st.secrets)
 # === CONFIGURACIÓN ===
 st.title("🧾 Formato para reporte de Recuperaciones")
 
