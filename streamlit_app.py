@@ -12,7 +12,7 @@ st.title("🧾 Formato para reporte de Recuperaciones")
 # Crear conexión a Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
 spreadsheet = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
-
+st.write(conn._client.spreadsheet.worksheets())
 try:
     df_test = conn.read(
         spreadsheet="1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA",
