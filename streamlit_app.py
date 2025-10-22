@@ -13,15 +13,15 @@ st.title("🧾 Formato para reporte de Recuperaciones")
 conn = st.connection("gsheets", type=GSheetsConnection)
 spreadsheet = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
 st.write(conn._client.spreadsheet.worksheets())
+
 try:
-    df_test = conn.read(
-        spreadsheet="1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA",
-        worksheet="TIENDAS"
-    )
-    st.success("✅ Conexión exitosa")
-    st.dataframe(df_test)
+    client = conn._instance._client  # acceso directo al cliente gspread
+    sh = client.open_by_key(spreadsheet)
+    worksheets = [ws.title for ws in sh.worksheets()]
+    st.success("✅ Conexión exitosa con el archivo.")
+    st.write("📄 Hojas disponibles:", worksheets)
 except Exception as e:
-    st.error(f"❌ Error: {e}")
+    st.error(f"❌ Error al obtener las hojas: {e}")
 
 # === Cargar datos desde Google Sheets ===
 df_tiendas = conn.read(spreadsheet=spreadsheet, worksheet="TIENDA")
