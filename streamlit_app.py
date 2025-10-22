@@ -24,7 +24,7 @@ except Exception as e:
     st.error(f"❌ Error: {e}")
 
 # === Cargar datos desde Google Sheets ===
-df_tiendas = conn.read(spreadsheet=spreadsheet, worksheet="TIENDAS")
+df_tiendas = conn.read(spreadsheet=spreadsheet, worksheet="TIENDA")
 df_vigilantes = conn.read(spreadsheet=spreadsheet, worksheet="VIGILANTES")
 df_sku = conn.read(spreadsheet=spreadsheet, worksheet="HFB")
 df_familias = conn.read(spreadsheet=spreadsheet, worksheet="HFB")  # Usa misma hoja si familia está allí
