@@ -13,6 +13,16 @@ st.title("🧾 Formato para reporte de Recuperaciones")
 conn = st.connection("gsheets", type=GSheetsConnection)
 spreadsheet = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
 
+try:
+    df_test = conn.read(
+        spreadsheet="1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA",
+        worksheet="TIENDAS"
+    )
+    st.success("✅ Conexión exitosa")
+    st.dataframe(df_test)
+except Exception as e:
+    st.error(f"❌ Error: {e}")
+
 # === Cargar datos desde Google Sheets ===
 df_tiendas = conn.read(spreadsheet=spreadsheet, worksheet="TIENDAS")
 df_vigilantes = conn.read(spreadsheet=spreadsheet, worksheet="VIGILANTES")
