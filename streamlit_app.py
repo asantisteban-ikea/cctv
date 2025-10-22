@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import gspread
-from google.oauth2 import service_account
+from google.oauth2.service_account import Credentials
 from datetime import datetime
 
 # === CONFIGURACIÓN ===
@@ -12,12 +12,11 @@ creds_dict = st.secrets["connections"]["gsheets"]["credentials"]
 spreadsheet_id = st.secrets["connections"]["gsheets"]["spreadsheet"]
 
 # Crear credenciales y cliente gspread
-creds = service_account.Credentials.from_service_account_info(
-    creds_dict,
-    scopes=["https://www.googleapis.com/auth/spreadsheets"]
-)
+creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"])
 gc = gspread.authorize(creds)
 sh = gc.open_by_key(spreadsheet_id)
+
+
 
 # === CARGAR HOJAS ===
 df_tiendas = pd.DataFrame(sh.worksheet("TIENDAS").get_all_records())
