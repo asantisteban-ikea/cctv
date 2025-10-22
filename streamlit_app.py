@@ -105,7 +105,7 @@ else:
 
     if lista_sku:
         producto = df_sku.loc[df_sku["SKU"] == lista_sku, "ITEM"].iloc[0]
-        familia_row = df_familias.loc[df_familias["SKU"] == lista_sku, "FAMILIA"]
+        familia_row = df_sku.loc[df_sku["SKU"] == lista_sku, "FAMILIA"]
         familia = familia_row.iloc[0] if not familia_row.empty else "No definida"
         st.info(f"🛒 Producto seleccionado: **{producto}**")
     else:
