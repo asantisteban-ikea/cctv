@@ -12,7 +12,7 @@ st.title("🧾 Formato para reporte de Recuperaciones")
 # Crear conexión a Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
 spreadsheet = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
-st.write(conn._client.spreadsheet.worksheets())
+st.write(conn.client.spreadsheet.worksheets())
 
 try:
     client = conn._instance._client  # acceso directo al cliente gspread
