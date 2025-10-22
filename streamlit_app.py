@@ -9,15 +9,15 @@ st.title("🧾 Formato para reporte de Recuperaciones")
 # Crear conexión
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-spreadsheet_fuente = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
+#spreadsheet_fuente = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
 
 # === Cargar datos desde Google Sheets ===
 # Asegúrate de que estas hojas existan: "tiendas", "vigilantes", "sku", "familias", "recuperaciones"
-df_tiendas = conn.read(spreadsheet=spreadsheet_fuente, worksheet="TIENDAS")
-df_vigilantes = conn.read(spreadsheet=spreadsheet_fuente, worksheet="VIGILANTES")
-df_sku = conn.read(spreadsheet=spreadsheet_fuente, worksheet="HFB")
-df_opciones_seleccion = conn.read(spreadsheet=spreadsheet_fuente, worksheet="OPCIONES DE SELECCION")
-df_recuperaciones = conn.read(spreadsheet=spreadsheet_fuente, worksheet="RECUPERACIONES")
+df_tiendas = conn.read(worksheet="TIENDAS")
+df_vigilantes = conn.read(worksheet="VIGILANTES")
+df_sku = conn.read(worksheet="HFB")
+df_opciones_seleccion = conn.read(worksheet="OPCIONES DE SELECCION")
+df_recuperaciones = conn.read(worksheet="RECUPERACIONES")
 
 # === Selección de tienda ===
 lista_tiendas = st.selectbox(
