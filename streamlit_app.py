@@ -11,7 +11,7 @@ st.title("🧾 Formato para reporte de Recuperaciones")
 
 # Crear conexión a Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
-spreadsheet = st.secrets.connections.gsheets.spreadsheet
+spreadsheet = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
 
 # === Cargar datos desde Google Sheets ===
 df_tiendas = conn.read(spreadsheet=spreadsheet, worksheet="TIENDAS")
