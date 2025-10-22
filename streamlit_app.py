@@ -9,7 +9,7 @@ st.title("🧾 Formato para reporte de Recuperaciones")
 # Crear conexión
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-spreadsheet = "https://docs.google.com/spreadsheets/d/1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA/edit?gid=894256818#gid=894256818"
+spreadsheet = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
 
 # === Cargar datos desde Google Sheets ===
 # Asegúrate de que estas hojas existan: "tiendas", "vigilantes", "sku", "familias", "recuperaciones"
