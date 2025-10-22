@@ -15,13 +15,21 @@ spreadsheet = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
 st.write(conn.client.spreadsheet.worksheets())
 
 try:
-    client = conn._instance._client  # acceso directo al cliente gspread
-    sh = client.open_by_key(spreadsheet)
+    # Obtener credenciales desde los secretos
+    creds_dict = st.secrets["connections"]["gsheets"]["credentials"]
+    
+    # Conectarse directamente con gspread (usando las mismas credenciales)
+    gc = gspread.service_account_from_dict(creds_dict)
+    sh = gc.open_by_key(spreadsheet_id)
+    
+    # Listar todas las hojas
     worksheets = [ws.title for ws in sh.worksheets()]
-    st.success("✅ Conexión exitosa con el archivo.")
+    
+    st.success("✅ Conexión correcta con el archivo de Google Sheets.")
     st.write("📄 Hojas disponibles:", worksheets)
+
 except Exception as e:
-    st.error(f"❌ Error al obtener las hojas: {e}")
+    st.error(f"❌ Error de conexión: {e}")
 
 # === Cargar datos desde Google Sheets ===
 df_tiendas = conn.read(spreadsheet=spreadsheet, worksheet="TIENDA")
