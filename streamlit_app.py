@@ -13,11 +13,11 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 
 # === Cargar datos desde Google Sheets ===
 # Asegúrate de que estas hojas existan: "tiendas", "vigilantes", "sku", "familias", "recuperaciones"
-df_tiendas = conn.read(worksheet="TIENDAS")
-df_vigilantes = conn.read(worksheet="VIGILANTES")
-df_sku = conn.read(worksheet="HFB")
-df_opciones_seleccion = conn.read(worksheet="OPCIONES DE SELECCION")
-df_recuperaciones = conn.read(worksheet="RECUPERACIONES")
+df_tiendas = conn.read(spreadsheet=st.secrets["connections"]["gsheets"]["spreadsheet"], worksheet="TIENDAS")
+df_vigilantes = conn.read(spreadsheet=st.secrets["connections"]["gsheets"]["spreadsheet"],worksheet="VIGILANTES")
+df_sku = conn.read(spreadsheet=st.secrets["connections"]["gsheets"]["spreadsheet"],worksheet="HFB")
+df_opciones_seleccion = conn.read(spreadsheet=st.secrets["connections"]["gsheets"]["spreadsheet"],worksheet="OPCIONES DE SELECCION")
+df_recuperaciones = conn.read(spreadsheet=st.secrets["connections"]["gsheets"]["spreadsheet"],worksheet="RECUPERACIONES")
 
 # === Selección de tienda ===
 lista_tiendas = st.selectbox(
