@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
+from google.oauth2 import service_account
 
 # Mostrar secrets para depuración (puedes eliminarlo luego)
 st.write(st.secrets)
@@ -14,22 +15,31 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 spreadsheet = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
 st.write(conn.client.spreadsheet.worksheets())
 
+st.title("🔑 Verificación de credenciales y acceso a Google Sheets")
+
 try:
-    # Obtener credenciales desde los secretos
+    # Cargar credenciales del secreto
     creds_dict = st.secrets["connections"]["gsheets"]["credentials"]
-    
-    # Conectarse directamente con gspread (usando las mismas credenciales)
-    gc = gspread.service_account_from_dict(creds_dict)
+
+    # Crear credenciales de Google (esto valida si están bien formateadas)
+    creds = service_account.Credentials.from_service_account_info(
+        creds_dict,
+        scopes=["https://www.googleapis.com/auth/spreadsheets"]
+    )
+
+    st.success("✅ Credenciales cargadas correctamente.")
+
+    # Conectar con gspread
+    gc = gspread.authorize(creds)
+    spreadsheet_id = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
     sh = gc.open_by_key(spreadsheet_id)
-    
-    # Listar todas las hojas
+    st.success(f"📗 Conexión exitosa al archivo: {sh.title}")
+
     worksheets = [ws.title for ws in sh.worksheets()]
-    
-    st.success("✅ Conexión correcta con el archivo de Google Sheets.")
     st.write("📄 Hojas disponibles:", worksheets)
 
 except Exception as e:
-    st.error(f"❌ Error de conexión: {e}")
+    st.error(f"❌ Error: {e}")
 
 # === Cargar datos desde Google Sheets ===
 df_tiendas = conn.read(spreadsheet=spreadsheet, worksheet="TIENDA")
