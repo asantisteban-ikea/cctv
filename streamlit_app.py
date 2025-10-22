@@ -1,25 +1,28 @@
-# Import python packages
 import streamlit as st
-from snowflake.snowpark.context import get_active_session
-from snowflake.snowpark.functions import col
 import pandas as pd
 from datetime import datetime
+from streamlit_gsheets import GSheetsConnection
 
-# Título y descripción
+# === CONFIGURACIÓN ===
 st.title("🧾 Formato para reporte de Recuperaciones")
 
+# Crear conexión
+conn = st.connection("gsheets", type=GSheetsConnection)
 
-# Obtener sesión activa de Snowflake
-session = get_active_session()
+spreadsheet = "https://docs.google.com/spreadsheets/d/1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA/edit?gid=894256818#gid=894256818"
 
- # === Selección de tienda ===
-#tiendas = session.table("ikea_col.tiendas.tiendas").select(col("TIENDA"), col("ID"))
-#pd_tiendas = tiendas.to_pandas()
+# === Cargar datos desde Google Sheets ===
+# Asegúrate de que estas hojas existan: "tiendas", "vigilantes", "sku", "familias", "recuperaciones"
+df_tiendas = conn.read(spreadsheet=spreadsheet, worksheet="TIENDAS")
+df_vigilantes = conn.read(spreadsheet=spreadsheet, worksheet="VIGILANTES")
+df_sku = conn.read(spreadsheet=spreadsheet, worksheet="HFB")
+df_opciones_seleccion = conn.read(spreadsheet=spreadsheet, worksheet="OPCIONES DE SELECCION")
+df_recuperaciones = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="RECUPERACIONES")
 
+# === Selección de tienda ===
 lista_tiendas = st.selectbox(
     "Elige una de las tiendas",
-    #pd_tiendas["TIENDA"].to_list(),
-    ["IKEA NQS", "IKEA MALLPLAZA CALI", "IKEA ENVIGADO"],
+    df_tiendas["TIENDA"].dropna().tolist(),
     placeholder="Selecciona una tienda",
     index=None
 )
@@ -28,194 +31,135 @@ if not lista_tiendas:
     st.warning("👉 Para comenzar, selecciona una de las tiendas del listado")
 else:
     # Obtener ID de tienda
-    #id_tienda = int(pd_tiendas.loc[pd_tiendas["TIENDA"] == lista_tiendas, "ID"].iloc[0])
-    match lista_tiendas:
-        case "IKEA NQS":
-            id_tienda = 1
-        case "IKEA MALLPLAZA CALI":
-            id_tienda = 2
-        case "IKEA ENVIGADO":
-            id_tienda = 3
-  
-    # === Campos de fecha y hora ===
+    id_tienda = df_tiendas.loc[df_tiendas["TIENDA"] == lista_tiendas, "ID"].iloc[0]
+
+    # === Fecha y hora ===
     fecha = st.date_input("📅 Ingresa la fecha de la recuperación:", value=None)
     hora = st.time_input("🕒 Ingresa la hora de la recuperación:", value=None)
-    
-    # === Calcular información extra desde la fecha y la hora ===
 
-    if not fecha and hora:
-        
-    else: 
+    if fecha and hora:
         horas = hora.hour
         rango_horas = f"{horas} - {horas+1}"
-        mes = fecha.month
-        dia = fecha.weekday()
-        
-        match mes:
-            case 1:
-                mes = "Enero"
-            case 2:
-                mes = "Febrero"
-            case 3:
-                mes = "Marzo"
-            case 4:
-                mes = "Abril"
-            case 5:
-                mes = "Mayo"
-            case 6:
-                mes = "Junio"
-            case 7:
-                mes = "Julio"
-            case 8:
-                mes = "Agosto"
-            case 9:
-                mes = "Septiembre"
-            case 10:
-                mes = "Octubre"
-            case 11:
-                mes = "Noviembre"
-            case 12:
-                mes = "Diciembre"
-                
-        match dia:
-            case 0:
-                dia = "Lunes"
-            case 1:
-                dia = "Martes"
-            case 2:
-                dia = "Miercoles"
-            case 3:
-                dia = "Jueves"
-            case 4:
-                dia = "Viernes"
-            case 5:
-                dia = "Sabado"
-            case 6:
-                dia = "Domingo"
-    
-    # === Vigilantes ===
-    vigilantes_df = (
-        session.table("ikea_col.cctv.vigilantes")
-        .filter(col("ID_TIENDA") == id_tienda)
-        .select(col("NOMBRE_VIGILANTE"))
-        .to_pandas()
-    )
+        mes = fecha.strftime("%B").capitalize()
+        dia = fecha.strftime("%A").capitalize()
+    else:
+        rango_horas, mes, dia = None, None, None
 
+    # === Vigilantes ===
+    vigilantes_df = df_vigilantes[df_vigilantes["ID_TIENDA"] == id_tienda]
     lista_vigilantes = st.selectbox(
         "👮 Indica el nombre del guarda",
-        vigilantes_df["NOMBRE_VIGILANTE"].to_list(),
+        vigilantes_df["NOMBRE_VIGILANTE"].dropna().tolist(),
         placeholder="Selecciona un guarda",
         index=None
     )
-    
-    vigilante_id = session.table("ikea_col.cctv.vigilantes").filter(col("NOMBRE_VIGILANTE") == lista_vigilantes).select(col("IDVIGILANTE")).to_pandas()
-    vigilante = vigilante_id["IDVIGILANTE"].iloc[0]
+
+    if lista_vigilantes:
+        vigilante = vigilantes_df.loc[vigilantes_df["NOMBRE_VIGILANTE"] == lista_vigilantes, "IDVIGILANTE"].iloc[0]
+    else:
+        vigilante = None
 
     # === Piso, ubicación y tipología ===
     pisos = st.radio(
         "🏬 Elige el piso",
-        ["Piso 1", "Piso 2", "Piso 3", "Pecera"],
+        df_opciones_seleccion["PISOS"].dropna().tolist(),
         index=None
     )
 
     ubicacion = st.radio(
         "📍 Elige la ubicación",
-        ["Antenas", "Autopago", "Cajas Asistidas", "Auditorías"],
+        df_opciones_seleccion["UBICACION"],
         index=None
     )
 
-    tipologia = st.radio(
-        "🔍 Elige una tipología",
-        ["Intención de hurto", "Producto no facturado", "Error de sistema", "Error de coworker"],
+    area_solicitud = st.radio (
+        " Elige el área que solicita",
+        df_opciones_seleccion["AREA QUE SOLICITA"],
         index=None
     )
 
-    # === Datos del coworker ===
+    #tipologia = st.radio(
+    #    "🔍 Elige una tipología",
+    #    ["Intención de hurto", "Producto no facturado", "Error de sistema", "Error de coworker"],
+    #    index=None
+    #)
+
+    # === Coworker ===
     nombre_cw = st.text_input("👤 Ingresa el nombre del Coworker:")
     pos_cw = st.text_input("💻 Ingresa el número de POS:")
 
-    # Validar que POS sea numérico
+    # Validar campo POS
     try:
         pos_cw = int(pos_cw) if pos_cw else None
     except ValueError:
         st.warning("⚠️ Ingresa solo números en el campo POS")
 
     # === Producto ===
-    sku_df = session.table("ikea_col.products.sku").select(col("SKU"), col("ITEM")).to_pandas()
-
     lista_sku = st.selectbox(
         "📦 Ingresa el SKU",
-        sku_df["SKU"].to_list(),
+        df_sku["SKU"].dropna().tolist(),
         placeholder="Selecciona un producto",
         index=None
     )
 
     if lista_sku:
-        producto = sku_df.loc[sku_df["SKU"] == lista_sku, "ITEM"].iloc[0]
+        producto = df_sku.loc[df_sku["SKU"] == lista_sku, "ITEM"].iloc[0]
+        familia_row = df_familias.loc[df_familias["SKU"] == lista_sku, "FAMILIA"]
+        familia = familia_row.iloc[0] if not familia_row.empty else "No definida"
         st.info(f"🛒 Producto seleccionado: **{producto}**")
+    else:
+        producto, familia = None, None
 
-        familia_df = session.table("ikea_col.products.desc_general_products").filter(col("SKU") == lista_sku).select(col("FAMILY")).to_pandas()
-        familia = familia_df["FAMILY"].iloc[0]
-    
     # === Valores económicos ===
     cantidad = st.number_input("📊 Ingresa la cantidad recuperada:", min_value=1, value=1)
     pvp_publico = st.number_input("💰 Ingresa el valor unitario del producto:", min_value=0.0, value=None)
 
-    # Calcular total y mostrar tabla
     if cantidad and pvp_publico:
         pvp_total = cantidad * pvp_publico
-
         valor = pd.DataFrame(
-            [{
-                "Cantidad": int(cantidad),
-                "PVP Público": float(pvp_publico),
-                "PVP Total": float(pvp_total)
-            }]
+            [{"Cantidad": int(cantidad), "PVP Público": float(pvp_publico), "PVP Total": float(pvp_total)}]
         )
+        st.table(valor.style.format({"PVP Público": "${:,.0f}", "PVP Total": "${:,.0f}"}))
+    else:
+        pvp_total = None
 
-        valor_formateado = valor.style.format({
-            "PVP Público": "${:,.0f}",
-            "PVP Total": "${:,.0f}"
-        })
+    # === Descripción ===
+    descripcion_caso = st.text_area("📝 Ingresa una descripción del caso:")
 
-        st.table(valor_formateado)
-
-    # === Descripción del caso ===
-    descripcion_caso = st.text_area("📝 Ingresa una descripción del caso:") 
-
-    st.write("La siguiente sera la información que será ingresada:")
+    # === Mostrar resumen ===
+    st.write("La siguiente será la información que será ingresada:")
     recuperacion = pd.DataFrame([{
-        "Tienda": lista_tiendas
-        , "Fecha": fecha
-        , "Hora": hora
-        , "Rango Horas": rango_horas
-        , "Mes": mes
-        , "Dia": dia
-        , "ID Vigilante": str(vigilante)
-        , "Nombre Vigilante" : lista_vigilantes
-        , "Piso": pisos
-        , "Ubicación": ubicacion
-        , "Tipologia": tipologia
-        , "Nombre CW": nombre_cw
-        , "POS": pos_cw
-        , "SKU": lista_sku
-        , "Familia": familia
-        , "Producto": producto
-        , "Cantidad": cantidad
-        , "PVP Público": pvp_publico
-        , "PVP Total": pvp_total        
-        }]).T
-    recuperacion.columns = recuperacion.iloc[0]
-    recuperacion = recuperacion[1:]
-    st.table(recuperacion)
+        "Tienda": lista_tiendas,
+        "Fecha": fecha,
+        "Hora": str(hora),
+        "Rango Horas": rango_horas,
+        "Mes": mes,
+        "Dia": dia,
+        "ID Vigilante": vigilante,
+        "Nombre Vigilante": lista_vigilantes,
+        "Piso": pisos,
+        "Ubicación": ubicacion,
+        #"Tipologia": tipologia,
+        "Nombre CW": nombre_cw,
+        "POS": pos_cw,
+        "SKU": lista_sku,
+        "Familia": familia,
+        "Producto": producto,
+        "Cantidad": cantidad,
+        "PVP Público": pvp_publico,
+        "PVP Total": pvp_total,
+        "Descripción Caso": descripcion_caso,
+        "Fecha Registro": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }])
 
-    
-# === Botón de envío ===
-    submitted = st.button("📤 Registrar")
+    st.table(recuperacion.T)
 
-    if submitted:
-        if not lista_tiendas and not lista_sku and not cantidad:
-            st.error("Debe seleccionar una tienda antes de registrar.")
+    # === Enviar registro ===
+    if st.button("📤 Registrar"):
+        if not lista_tiendas or not lista_sku or not cantidad:
+            st.error("⚠️ Debes completar los campos obligatorios antes de registrar.")
         else:
-            
-            st.success("✅ Información registrada correctamente (pendiente guardar en base).")
+            # Guardar en hoja de Google Sheets
+            df_recuperaciones = pd.concat([df_recuperaciones, recuperacion], ignore_index=True)
+            conn.update(worksheet="recuperaciones", data=df_recuperaciones)
+            st.success("✅ Información registrada correctamente.")
