@@ -45,8 +45,8 @@ if lista_tiendas:
         case "IKEA ENVIGADO":
             id_tienda = 3
 
-    fecha = st.date_input("📅 Fecha de la recuperación")
-    hora = st.time_input("🕒 Hora de la recuperación")
+    fecha = st.date_input("📅 Fecha de la recuperación", value=None)
+    hora = st.time_input("🕒 Hora de la recuperación", value=None)
 
     vigilantes_df = df_vigilantes[df_vigilantes["ID_TIENDA"] == id_tienda]
     lista_vigilantes = st.selectbox(
@@ -75,10 +75,10 @@ if lista_tiendas:
         index=None
     )
 
-    nombre_cw = st.text_input("👤 Nombre del Coworker", index=None)
-    pos_cw = st.text_input("💻 Número de POS", index=None)
+    nombre_cw = st.text_input("👤 Nombre del Coworker")
+    pos_cw = st.text_input("💻 Número de POS")
 
-    lista_sku = st.selectbox("📦 SKU", df_sku["SKU"].dropna().tolist())
+    lista_sku = st.selectbox("📦 SKU", df_sku["SKU"].dropna().tolist(), index=None)
 
     if lista_sku:
         producto = df_sku.loc[df_sku["SKU"] == lista_sku, "ITEM"].iloc[0]
@@ -86,7 +86,7 @@ if lista_tiendas:
         st.info(f"🛒 Producto: **{producto}**, Familia: **{familia}**")
 
     cantidad = st.number_input("📊 Cantidad", min_value=1, value=1)
-    pvp = st.number_input("💰 Valor unitario", min_value=0.0, value=0.0)
+    pvp = st.number_input("💰 Valor unitario", min_value=0, value=0)
     total = cantidad * pvp
     st.write(f"**Total:** ${total:,.0f}")
 
