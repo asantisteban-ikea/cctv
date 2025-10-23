@@ -51,7 +51,7 @@ if lista_tiendas:
     vigilantes_df = df_vigilantes[df_vigilantes["ID_TIENDA"] == id_tienda]
     lista_vigilantes = st.selectbox(
         "👮 Nombre del vigilante",
-        vigilantes_df["NOMBRE_VIGILANTE"].dropna().tolist(),
+        vigilantes_df["NOMBRE VIGILANTE"].dropna().tolist(),
     )
 
     pisos = st.radio(
