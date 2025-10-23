@@ -160,7 +160,6 @@ if lista_tiendas:
 
     descripcion = st.text_area("📝 Descripción del caso")
 
-    fecha_registro = datetime.now(ZoneInfo("America/Bogota")).strftime("%Y-%m-%d %H:%M:%S")
 
     if st.button("📤 Registrar"):
         # Validar campos obligatorios
@@ -168,7 +167,7 @@ if lista_tiendas:
             st.error("⚠️ Debes completar los campos obligatorios antes de registrar.")
         else:
             # Ajuste de hora a Colombia (UTC-5)
-            hora_local = datetime.now - timedelta(hours=5)
+            fecha_registro = (datetime.utcnow() - timedelta(hours=5)).strftime("%Y-%m-%d %H:%M:%S")
 
             nueva_fila = [
                 lista_tiendas, str(fecha), str(hora),
