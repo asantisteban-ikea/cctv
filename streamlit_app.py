@@ -50,9 +50,7 @@ if lista_tiendas:
     fecha = st.date_input("📅 Fecha de la recuperación", value=None)
     hora = st.time_input("🕒 Hora de la recuperación", value=None)
 
-      if not fecha and hora:
-        
-    else: 
+    if fecha and hora:
         horas = hora.hour
         rango_horas = f"{horas} - {horas+1}"
         mes = fecha.month
@@ -83,7 +81,7 @@ if lista_tiendas:
                 mes = "Noviembre"
             case 12:
                 mes = "Diciembre"
-                
+                     
         match dia:
             case 0:
                 dia = "Lunes"
