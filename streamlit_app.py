@@ -1,137 +1,86 @@
 import streamlit as st
 import pandas as pd
+import gspread
+from google.oauth2 import service_account
 from datetime import datetime
-from streamlit_gsheets import GSheetsConnection
 
-# === CONFIGURACIÓN GENERAL ===
-st.set_page_config(page_title="Formato Recuperaciones", page_icon="🧾", layout="wide")
+# === CONFIGURACIÓN ===
 st.title("🧾 Formato para reporte de Recuperaciones")
 
-# === CONEXIÓN A GOOGLE SHEETS ===
-conn = st.connection("gsheets", type=GSheetsConnection)
+# === CREDENCIALES ===
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["connections"]["gsheets"]["credentials"],
+    scopes=["https://www.googleapis.com/auth/spreadsheets"]
+)
 
-spreadsheet = "1t_hRvnpf_UaIH9_ZXvItlrsHVf2UaLrxQSNcpZQoQVA"
+gc = gspread.authorize(credentials)
 
-# === LECTURA DE HOJAS ===
-try:
-    df_tiendas = conn.read(spreadsheet=spreadsheet, worksheet="TIENDAS", ttl=0)
-    df_vigilantes = conn.read(spreadsheet=spreadsheet, worksheet="VIGILANTES", ttl=0)
-    df_sku = conn.read(spreadsheet=spreadsheet, worksheet="HFB", ttl=0)
-    df_opciones = conn.read(spreadsheet=spreadsheet, worksheet="OPCIONES DE SELECCION", ttl=0)
-    df_recuperaciones = conn.read(spreadsheet=spreadsheet, worksheet="RECUPERACIONES", ttl=0)
-except Exception as e:
-    st.error(f"❌ Error al leer Google Sheets: {e}")
-    st.stop()
+# === CONEXIÓN AL ARCHIVO ===
+spreadsheet_id = st.secrets["connections"]["gsheets"]["spreadsheet"]
+sh = gc.open_by_key(spreadsheet_id)
 
-# === SELECCIÓN DE TIENDA ===
+# === CARGAR HOJAS ===
+tiendas_ws = sh.worksheet("TIENDAS")
+vigilantes_ws = sh.worksheet("VIGILANTES")
+sku_ws = sh.worksheet("HFB")
+opciones_ws = sh.worksheet("OPCIONES DE SELECCION")
+recuperaciones_ws = sh.worksheet("RECUPERACIONES")
+
+# Convertir a DataFrame
+df_tiendas = pd.DataFrame(tiendas_ws.get_all_records())
+df_vigilantes = pd.DataFrame(vigilantes_ws.get_all_records())
+df_sku = pd.DataFrame(sku_ws.get_all_records())
+df_opciones = pd.DataFrame(opciones_ws.get_all_records())
+df_recuperaciones = pd.DataFrame(recuperaciones_ws.get_all_records())
+
+# === INTERFAZ ===
 lista_tiendas = st.selectbox(
-    "🏬 Elige una de las tiendas",
+    "Elige una de las tiendas",
     df_tiendas["TIENDA"].dropna().tolist(),
     placeholder="Selecciona una tienda",
-    index=None
 )
 
-if not lista_tiendas:
-    st.warning("👉 Para comenzar, selecciona una tienda del listado.")
-    st.stop()
+if lista_tiendas:
+    id_tienda = df_tiendas.loc[df_tiendas["TIENDA"] == lista_tiendas, "ID"].iloc[0]
 
-# === DATOS DE TIENDA Y FECHA ===
-id_tienda = df_tiendas.loc[df_tiendas["TIENDA"] == lista_tiendas, "ID"].iloc[0]
-fecha = st.date_input("📅 Fecha de recuperación:")
-hora = st.time_input("🕒 Hora de recuperación:")
+    fecha = st.date_input("📅 Fecha de la recuperación")
+    hora = st.time_input("🕒 Hora de la recuperación")
 
-horas = hora.hour
-rango_horas = f"{horas} - {horas+1}"
-mes = fecha.strftime("%B").capitalize()
-dia = fecha.strftime("%A").capitalize()
+    vigilantes_df = df_vigilantes[df_vigilantes["ID_TIENDA"] == id_tienda]
+    lista_vigilantes = st.selectbox(
+        "👮 Nombre del vigilante",
+        vigilantes_df["NOMBRE_VIGILANTE"].dropna().tolist(),
+    )
 
-# === VIGILANTE ===
-vigilantes_df = df_vigilantes[df_vigilantes["ID_TIENDA"] == id_tienda]
-lista_vigilantes = st.selectbox(
-    "👮 Nombre del guarda",
-    vigilantes_df["NOMBRE_VIGILANTE"].dropna().tolist(),
-    placeholder="Selecciona un guarda",
-    index=None
-)
-vigilante = (
-    vigilantes_df.loc[vigilantes_df["NOMBRE_VIGILANTE"] == lista_vigilantes, "IDVIGILANTE"].iloc[0]
-    if lista_vigilantes
-    else None
-)
+    pisos = st.radio("🏬 Piso", df_opciones["PISOS"].dropna().tolist())
+    ubicacion = st.radio("📍 Ubicación", df_opciones["UBICACION"].dropna().tolist())
+    area = st.radio("🗂️ Área que solicita", df_opciones["AREA QUE SOLICITA"].dropna().tolist())
 
-# === PISO, UBICACIÓN, ÁREA ===
-pisos = st.radio("🏢 Piso", df_opciones["PISOS"].dropna().tolist(), index=None)
-ubicacion = st.radio("📍 Ubicación", df_opciones["UBICACION"].dropna().tolist(), index=None)
-area_solicitud = st.radio("🗂️ Área que solicita", df_opciones["AREA QUE SOLICITA"].dropna().tolist(), index=None)
+    nombre_cw = st.text_input("👤 Nombre del Coworker")
+    pos_cw = st.text_input("💻 Número de POS")
 
-# === COWORKER ===
-nombre_cw = st.text_input("👤 Nombre del Coworker:")
-pos_cw = st.text_input("💻 Número de POS:")
-try:
-    pos_cw = int(pos_cw) if pos_cw else None
-except ValueError:
-    st.warning("⚠️ Ingresa solo números en el campo POS")
+    lista_sku = st.selectbox("📦 SKU", df_sku["SKU"].dropna().tolist())
 
-# === PRODUCTO ===
-lista_sku = st.selectbox(
-    "📦 SKU del producto",
-    df_sku["SKU"].dropna().tolist(),
-    placeholder="Selecciona un SKU",
-    index=None
-)
-if lista_sku:
-    producto = df_sku.loc[df_sku["SKU"] == lista_sku, "ITEM"].iloc[0]
-    familia_row = df_sku.loc[df_sku["SKU"] == lista_sku, "FAMILIA"]
-    familia = familia_row.iloc[0] if not familia_row.empty else "No definida"
-    st.info(f"🛒 Producto seleccionado: **{producto}**")
-else:
-    producto, familia = None, None
+    if lista_sku:
+        producto = df_sku.loc[df_sku["SKU"] == lista_sku, "ITEM"].iloc[0]
+        familia = df_sku.loc[df_sku["SKU"] == lista_sku, "FAMILIA"].iloc[0]
+        st.info(f"🛒 Producto: **{producto}**, Familia: **{familia}**")
 
-# === VALORES ECONÓMICOS ===
-cantidad = st.number_input("📊 Cantidad recuperada:", min_value=1, value=1)
-pvp_publico = st.number_input("💰 Valor unitario del producto:", min_value=0.0, value=0.0)
-pvp_total = cantidad * pvp_publico
+    cantidad = st.number_input("📊 Cantidad", min_value=1, value=1)
+    pvp = st.number_input("💰 Valor unitario", min_value=0.0, value=0.0)
+    total = cantidad * pvp
 
-st.table(pd.DataFrame(
-    [{"Cantidad": cantidad, "PVP Público": pvp_publico, "PVP Total": pvp_total}]
-).style.format({"PVP Público": "${:,.0f}", "PVP Total": "${:,.0f}"}))
+    st.write(f"**Total:** ${total:,.0f}")
 
-# === DESCRIPCIÓN ===
-descripcion_caso = st.text_area("📝 Descripción del caso:")
+    descripcion = st.text_area("📝 Descripción del caso")
 
-# === PREVISUALIZACIÓN ===
-recuperacion = pd.DataFrame([{
-    "Tienda": lista_tiendas,
-    "Fecha": fecha,
-    "Hora": str(hora),
-    "Rango Horas": rango_horas,
-    "Mes": mes,
-    "Día": dia,
-    "ID Vigilante": vigilante,
-    "Nombre Vigilante": lista_vigilantes,
-    "Piso": pisos,
-    "Ubicación": ubicacion,
-    "Área Solicitud": area_solicitud,
-    "Nombre CW": nombre_cw,
-    "POS": pos_cw,
-    "SKU": lista_sku,
-    "Familia": familia,
-    "Producto": producto,
-    "Cantidad": cantidad,
-    "PVP Público": pvp_publico,
-    "PVP Total": pvp_total,
-    "Descripción Caso": descripcion_caso,
-    "Fecha Registro": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-}])
-
-st.write("📋 Información que se registrará:")
-st.table(recuperacion.T)
-
-# === GUARDAR EN GOOGLE SHEETS ===
-if st.button("📤 Registrar"):
-    try:
-        df_actualizado = pd.concat([df_recuperaciones, recuperacion], ignore_index=True)
-        conn.update(worksheet="RECUPERACIONES", data=df_actualizado)
+    if st.button("📤 Registrar"):
+        nueva_fila = [
+            lista_tiendas, str(fecha), str(hora),
+            lista_vigilantes, pisos, ubicacion, area,
+            nombre_cw, pos_cw, lista_sku, producto,
+            familia, cantidad, pvp, total, descripcion,
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ]
+        recuperaciones_ws.append_row(nueva_fila)
         st.success("✅ Información registrada correctamente.")
-    except Exception as e:
-        st.error(f"❌ Error al guardar los datos: {e}")
