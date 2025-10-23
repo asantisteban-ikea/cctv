@@ -19,29 +19,42 @@ gc = gspread.authorize(credentials)
 spreadsheet_id = st.secrets["connections"]["gsheets"]["spreadsheet"]
 sh = gc.open_by_key(spreadsheet_id)
 
+# ⛓️ Cargar datos con cache
+@st.cache_data(ttl=86400)  # 1 semana de cache
+def load_data(sheet):
+    return conn.read(spreadsheet=spreadsheet, worksheet=sheet)
+
+
 # === CARGAR HOJAS ===
-tiendas_ws = sh.worksheet("TIENDAS")
+#tiendas_ws = sh.worksheet("TIENDAS")
 vigilantes_ws = sh.worksheet("VIGILANTES")
 sku_ws = sh.worksheet("HFB")
-opciones_ws = sh.worksheet("OPCIONES DE SELECCION")
+#opciones_ws = sh.worksheet("OPCIONES DE SELECCION")
 recuperaciones_ws = sh.worksheet("RECUPERACIONES")
 
 # Convertir a DataFrame
-df_tiendas = pd.DataFrame(tiendas_ws.get_all_records())
-df_vigilantes = pd.DataFrame(vigilantes_ws.get_all_records())
+#df_tiendas = pd.DataFrame(tiendas_ws.get_all_records())
+#df_vigilantes = pd.DataFrame(vigilantes_ws.get_all_records())
 df_sku = pd.DataFrame(sku_ws.get_all_records())
-df_opciones = pd.DataFrame(opciones_ws.get_all_records())
+#df_opciones = pd.DataFrame(opciones_ws.get_all_records())
 df_recuperaciones = pd.DataFrame(recuperaciones_ws.get_all_records())
 
 # === INTERFAZ ===
 lista_tiendas = st.selectbox(
     "Elige una de las tiendas",
-    df_tiendas["TIENDA"].dropna().tolist(),
+    ["IKEA NQS", "IKEA MALLPLAZA CALI", "IKEA ENVIGADO"],
     placeholder="Selecciona una tienda",
+    value=None
 )
 
 if lista_tiendas:
-    id_tienda = df_tiendas.loc[df_tiendas["TIENDA"] == lista_tiendas, "ID"].iloc[0]
+    match lista_tiendas:
+        case "IKEA NQS":
+            id_tienda = 1
+        case "IKEA MALLPLAZA CALI":
+            id_tienda = 2
+        case "IKEA ENVIGADO":
+            id_tienda = 3
 
     fecha = st.date_input("📅 Fecha de la recuperación")
     hora = st.time_input("🕒 Hora de la recuperación")
@@ -52,9 +65,26 @@ if lista_tiendas:
         vigilantes_df["NOMBRE_VIGILANTE"].dropna().tolist(),
     )
 
-    pisos = st.radio("🏬 Piso", df_opciones["PISOS"].dropna().tolist())
-    ubicacion = st.radio("📍 Ubicación", df_opciones["UBICACION"].dropna().tolist())
-    area = st.radio("🗂️ Área que solicita", df_opciones["AREA QUE SOLICITA"].dropna().tolist())
+    pisos = st.radio(
+        "🏬 Piso", 
+        ["Piso 1", "Piso 2", "Piso 3", "Pecera"],
+        placeholder= "Indica el piso",
+        value=None
+    )
+
+    ubicacion = st.radio(
+        "📍 Ubicación",
+        ["Antenas", "Autopago", "Auditoria", "Cajas Asistidas", "Check Out", "Solicitud"],
+        placeholder="Indica la ubicación",
+        value=None
+        )
+
+    area = st.radio(
+        "🗂️ Área que solicita", 
+        ["CX", "Recovery", "Olvido Cliente", "Fulfillment", "BNO", "S&S", "Sales", "Duty Manager"],
+        placeholder="Indica el área que solicita",
+        value=None
+        )
 
     nombre_cw = st.text_input("👤 Nombre del Coworker")
     pos_cw = st.text_input("💻 Número de POS")
