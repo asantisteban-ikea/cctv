@@ -3,6 +3,7 @@ import pandas as pd
 import gspread
 from google.oauth2 import service_account
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # === CONFIGURACIÓN ===
 st.title("🧾 Formato para reporte de Recuperaciones")
@@ -48,6 +49,56 @@ if lista_tiendas:
 
     fecha = st.date_input("📅 Fecha de la recuperación", value=None)
     hora = st.time_input("🕒 Hora de la recuperación", value=None)
+
+      if not fecha and hora:
+        
+    else: 
+        horas = hora.hour
+        rango_horas = f"{horas} - {horas+1}"
+        mes = fecha.month
+        dia = fecha.weekday()
+        
+        match mes:
+            case 1:
+                mes = "Enero"
+            case 2:
+                mes = "Febrero"
+            case 3:
+                mes = "Marzo"
+            case 4:
+                mes = "Abril"
+            case 5:
+                mes = "Mayo"
+            case 6:
+                mes = "Junio"
+            case 7:
+                mes = "Julio"
+            case 8:
+                mes = "Agosto"
+            case 9:
+                mes = "Septiembre"
+            case 10:
+                mes = "Octubre"
+            case 11:
+                mes = "Noviembre"
+            case 12:
+                mes = "Diciembre"
+                
+        match dia:
+            case 0:
+                dia = "Lunes"
+            case 1:
+                dia = "Martes"
+            case 2:
+                dia = "Miercoles"
+            case 3:
+                dia = "Jueves"
+            case 4:
+                dia = "Viernes"
+            case 5:
+                dia = "Sabado"
+            case 6:
+                dia = "Domingo"
 
     vigilantes_df = df_vigilantes[df_vigilantes["ID_TIENDA"] == id_tienda]
     lista_vigilantes = st.selectbox(
@@ -99,14 +150,18 @@ if lista_tiendas:
 
     descripcion = st.text_area("📝 Descripción del caso")
 
+    fecha_registro = datetime.now(ZoneInfo("America/Bogota")).strftime("%Y-%m-%d %H:%M:%S")
+
+
     if st.button("📤 Registrar"):
         try:
             nueva_fila = [
+                fecha_registro,
                 lista_tiendas, str(fecha), str(hora),
                 lista_vigilantes, pisos, ubicacion, area,
                 nombre_cw, pos_cw, lista_sku, producto,
                 familia, cantidad, pvp, total, descripcion,
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                dia, mes, rango_horas,
             ]
             recuperaciones_ws.append_row(nueva_fila)
             st.success("✅ Información registrada correctamente.")
