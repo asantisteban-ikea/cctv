@@ -26,6 +26,7 @@ def load_worksheet_data(sheet_name):
 # === CARGA DE HOJAS ===
 df_vigilantes = load_worksheet_data("VIGILANTES")
 df_sku = load_worksheet_data("HFB")
+df_sku["SKU"] = df_sku["SKU"].astype(str).str.zfill(8)
 recuperaciones_ws = sh.worksheet("RECUPERACIONES")
 
 # === INTERFAZ ===
@@ -52,6 +53,7 @@ if lista_tiendas:
     lista_vigilantes = st.selectbox(
         "👮 Nombre del vigilante",
         vigilantes_df["NOMBRE VIGILANTE"].dropna().tolist(),
+        index=None
     )
 
     pisos = st.radio(
@@ -77,10 +79,13 @@ if lista_tiendas:
 
     nombre_cw = st.text_input("👤 Nombre del Coworker")
     pos_cw = st.text_input("💻 Número de POS")
-    try:
-        pos_cw = int(pos_cw)
-    except Exception as e:
-        st.warning(f"⚠️ Solo debes ingresar el número de la POS")   
+    if not pos_cw:
+        None
+    else:
+        try:
+            pos_cw = int(pos_cw)
+        except Exception as e:
+            st.warning(f"⚠️ Solo debes ingresar el número de la POS")   
 
     lista_sku = st.selectbox("📦 SKU", df_sku["SKU"].dropna().tolist(), index=None)
 
