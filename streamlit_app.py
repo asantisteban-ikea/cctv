@@ -134,12 +134,41 @@ if lista_tiendas:
         except Exception as e:
             st.warning(f"⚠️ Solo debes ingresar el número de la POS")   
 
-    lista_sku = st.selectbox("📦 SKU", df_sku["SKU"].dropna().tolist(), index=None)
+    # === SELECCIÓN DE SKU CON BÚSQUEDA FILTRADA ===
+    st.markdown("### 📦 Búsqueda de producto por SKU")
 
-    if lista_sku:
-        producto = df_sku.loc[df_sku["SKU"] == lista_sku, "ITEM"].iloc[0]
-        familia = df_sku.loc[df_sku["SKU"] == lista_sku, "FAMILIA"].iloc[0]
-        st.info(f"🛒 Producto: **{producto}**, Familia: **{familia}**")
+    # Campo de texto para buscar
+    busqueda_sku = st.text_input(
+        "🔎 Escribe el SKU del producto (o parte de él):",
+        placeholder="Ejemplo: 001234 o 1234"
+    )
+
+    sku_seleccionado = None
+
+    if busqueda_sku:
+        # Filtrar por coincidencia parcial (solo SKU)
+        filtro = df_sku[df_sku["SKU"].astype(str).str.contains(busqueda_sku, case=False, na=False)]
+
+        if not filtro.empty:
+            # Mostrar solo los SKU coincidentes (máximo 50 para evitar sobrecarga visual)
+            opciones = filtro["SKU"].head(50).tolist()
+
+            sku_seleccionado = st.selectbox(
+                "Selecciona el SKU encontrado:",
+                opciones,
+                index=None,
+                placeholder="Selecciona un SKU"
+            )
+
+            if sku_seleccionado:
+                producto = filtro.loc[filtro["SKU"] == sku_seleccionado, "ITEM"].iloc[0]
+                familia = filtro.loc[filtro["SKU"] == sku_seleccionado, "FAMILIA"].iloc[0]
+                st.info(f"🛒 Producto: **{producto}**, Familia: **{familia}**")
+
+        else:
+            st.warning("⚠️ No se encontraron coincidencias con ese SKU.")
+    else:
+        st.caption("Empieza escribiendo un SKU para buscar el producto.")
 
     cantidad = st.number_input("📊 Cantidad", min_value=1, value=1)
     pvp = st.number_input("💰 Valor unitario", min_value=0, value=0)
