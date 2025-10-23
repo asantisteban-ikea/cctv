@@ -175,7 +175,7 @@ if lista_tiendas:
                 lista_tiendas, str(fecha), str(hora),
                 lista_vigilantes, pisos, ubicacion, area,
                 nombre_cw, pos_cw, lista_sku, familia, 
-                productos, cantidad, pvp, total, descripcion,
+                producto, cantidad, pvp, total, descripcion,
                 mes, dia, rango_horas
             ]
 
