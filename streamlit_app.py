@@ -79,9 +79,7 @@ if lista_tiendas:
 
     nombre_cw = st.text_input("👤 Nombre del Coworker")
     pos_cw = st.text_input("💻 Número de POS")
-    if not pos_cw:
-        None
-    else:
+    if pos_cw:
         try:
             pos_cw = int(pos_cw)
         except Exception as e:
