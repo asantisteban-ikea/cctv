@@ -171,7 +171,7 @@ if lista_tiendas:
             fecha_registro = (datetime.utcnow() - timedelta(hours=5)).strftime("%Y-%m-%d %H:%M:%S")
 
             nueva_fila = [
-                hora_local.strftime("%Y-%m-%d %H:%M:%S")
+                hora_local.strftime("%Y-%m-%d %H:%M:%S"),
                 lista_tiendas, str(fecha), str(hora),
                 lista_vigilantes, pisos, ubicacion, area,
                 nombre_cw, pos_cw, lista_sku, producto,
