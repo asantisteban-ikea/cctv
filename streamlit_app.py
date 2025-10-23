@@ -174,8 +174,8 @@ if lista_tiendas:
                 hora_local.strftime("%Y-%m-%d %H:%M:%S"),
                 lista_tiendas, str(fecha), str(hora),
                 lista_vigilantes, pisos, ubicacion, area,
-                nombre_cw, pos_cw, lista_sku, producto,
-                familia, cantidad, pvp, total, descripcion,
+                nombre_cw, pos_cw, lista_sku, familia, 
+                productos, cantidad, pvp, total, descripcion,
                 mes, dia, rango_horas
             ]
 
