@@ -30,6 +30,16 @@ df_sku = load_worksheet_data("HFB")
 df_sku["SKU"] = df_sku["SKU"].astype(str).str.zfill(8)
 recuperaciones_ws = sh.worksheet("RECUPERACIONES")
 
+# === SESIÓN ===
+if "reset" not in st.session_state:
+    st.session_state.reset = False
+
+def reset_form():
+    for key in list(st.session_state.keys()):
+        if key != "reset":
+            del st.session_state[key]
+    st.session_state.reset = True
+
 # === INTERFAZ ===
 lista_tiendas = st.selectbox(
     "Elige una de las tiendas",
@@ -140,6 +150,8 @@ if lista_tiendas:
         producto = df_sku.loc[df_sku["SKU"] == lista_sku, "ITEM"].iloc[0]
         familia = df_sku.loc[df_sku["SKU"] == lista_sku, "FAMILIA"].iloc[0]
         st.info(f"🛒 Producto: **{producto}**, Familia: **{familia}**")
+    else:
+        st.warning("⚠️ Debes seleccionar uno de los SKU de las opciones")
 
     cantidad = st.number_input("📊 Cantidad", min_value=1, value=1)
     pvp = st.number_input("💰 Valor unitario", min_value=0, value=0)
@@ -150,18 +162,24 @@ if lista_tiendas:
 
     fecha_registro = datetime.now(ZoneInfo("America/Bogota")).strftime("%Y-%m-%d %H:%M:%S")
 
-
     if st.button("📤 Registrar"):
-        try:
+        # Validar campos obligatorios
+        if not lista_tiendas or not lista_sku or not cantidad:
+            st.error("⚠️ Debes completar los campos obligatorios antes de registrar.")
+        else:
+            # Ajuste de hora a Colombia (UTC-5)
+            hora_local = datetime.now(timezone.utc) - timedelta(hours=5)
+
             nueva_fila = [
-                fecha_registro,
                 lista_tiendas, str(fecha), str(hora),
                 lista_vigilantes, pisos, ubicacion, area,
                 nombre_cw, pos_cw, lista_sku, producto,
                 familia, cantidad, pvp, total, descripcion,
-                dia, mes, rango_horas,
+                hora_local.strftime("%Y-%m-%d %H:%M:%S")
             ]
+
             recuperaciones_ws.append_row(nueva_fila)
             st.success("✅ Información registrada correctamente.")
-        except Exception as e:
-            st.error(f"⚠️ Error al registrar los datos: {e}")
+
+            # 🔄 Limpiar campos
+            reset_form()
