@@ -14,37 +14,26 @@ credentials = service_account.Credentials.from_service_account_info(
 )
 
 gc = gspread.authorize(credentials)
-
-# === CONEXIÓN AL ARCHIVO ===
 spreadsheet_id = st.secrets["connections"]["gsheets"]["spreadsheet"]
 sh = gc.open_by_key(spreadsheet_id)
 
-# ⛓️ Cargar datos con cache
-@st.cache_data(ttl=86400)  # 1 semana de cache
-def load_data(sheet):
-    return conn.read(spreadsheet=spreadsheet, worksheet=sheet)
+# === CARGA DE DATOS CON CACHE (TTL = 7 días) ===
+@st.cache_data(ttl=7*24*60*60)  # 7 días en segundos
+def load_worksheet_data(sheet_name):
+    ws = sh.worksheet(sheet_name)
+    return pd.DataFrame(ws.get_all_records())
 
-
-# === CARGAR HOJAS ===
-#tiendas_ws = sh.worksheet("TIENDAS")
-vigilantes_ws = sh.worksheet("VIGILANTES")
-sku_ws = sh.worksheet("HFB")
-#opciones_ws = sh.worksheet("OPCIONES DE SELECCION")
+# === CARGA DE HOJAS ===
+df_vigilantes = load_worksheet_data("VIGILANTES")
+df_sku = load_worksheet_data("HFB")
 recuperaciones_ws = sh.worksheet("RECUPERACIONES")
-
-# Convertir a DataFrame
-#df_tiendas = pd.DataFrame(tiendas_ws.get_all_records())
-#df_vigilantes = pd.DataFrame(vigilantes_ws.get_all_records())
-df_sku = pd.DataFrame(sku_ws.get_all_records())
-#df_opciones = pd.DataFrame(opciones_ws.get_all_records())
-df_recuperaciones = pd.DataFrame(recuperaciones_ws.get_all_records())
 
 # === INTERFAZ ===
 lista_tiendas = st.selectbox(
     "Elige una de las tiendas",
     ["IKEA NQS", "IKEA MALLPLAZA CALI", "IKEA ENVIGADO"],
     placeholder="Selecciona una tienda",
-    value=None
+    index=None
 )
 
 if lista_tiendas:
@@ -68,26 +57,26 @@ if lista_tiendas:
     pisos = st.radio(
         "🏬 Piso", 
         ["Piso 1", "Piso 2", "Piso 3", "Pecera"],
-        placeholder= "Indica el piso",
-        value=None
+        horizontal=True,
+        index=None
     )
 
     ubicacion = st.radio(
         "📍 Ubicación",
         ["Antenas", "Autopago", "Auditoria", "Cajas Asistidas", "Check Out", "Solicitud"],
-        placeholder="Indica la ubicación",
-        value=None
-        )
+        horizontal=True,
+        index=None
+    )
 
     area = st.radio(
         "🗂️ Área que solicita", 
         ["CX", "Recovery", "Olvido Cliente", "Fulfillment", "BNO", "S&S", "Sales", "Duty Manager"],
-        placeholder="Indica el área que solicita",
-        value=None
-        )
+        horizontal=True,
+        index=None
+    )
 
-    nombre_cw = st.text_input("👤 Nombre del Coworker")
-    pos_cw = st.text_input("💻 Número de POS")
+    nombre_cw = st.text_input("👤 Nombre del Coworker", index=None)
+    pos_cw = st.text_input("💻 Número de POS", index=None)
 
     lista_sku = st.selectbox("📦 SKU", df_sku["SKU"].dropna().tolist())
 
@@ -99,18 +88,20 @@ if lista_tiendas:
     cantidad = st.number_input("📊 Cantidad", min_value=1, value=1)
     pvp = st.number_input("💰 Valor unitario", min_value=0.0, value=0.0)
     total = cantidad * pvp
-
     st.write(f"**Total:** ${total:,.0f}")
 
     descripcion = st.text_area("📝 Descripción del caso")
 
     if st.button("📤 Registrar"):
-        nueva_fila = [
-            lista_tiendas, str(fecha), str(hora),
-            lista_vigilantes, pisos, ubicacion, area,
-            nombre_cw, pos_cw, lista_sku, producto,
-            familia, cantidad, pvp, total, descripcion,
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        ]
-        recuperaciones_ws.append_row(nueva_fila)
-        st.success("✅ Información registrada correctamente.")
+        try:
+            nueva_fila = [
+                lista_tiendas, str(fecha), str(hora),
+                lista_vigilantes, pisos, ubicacion, area,
+                nombre_cw, pos_cw, lista_sku, producto,
+                familia, cantidad, pvp, total, descripcion,
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ]
+            recuperaciones_ws.append_row(nueva_fila)
+            st.success("✅ Información registrada correctamente.")
+        except Exception as e:
+            st.error(f"⚠️ Error al registrar los datos: {e}")
