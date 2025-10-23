@@ -77,6 +77,10 @@ if lista_tiendas:
 
     nombre_cw = st.text_input("👤 Nombre del Coworker")
     pos_cw = st.text_input("💻 Número de POS")
+    try:
+        pos_cw = int(pos_cw)
+    except Exception as e:
+        st.warning(f"⚠️ Solo debes ingresar el número de la POS")   
 
     lista_sku = st.selectbox("📦 SKU", df_sku["SKU"].dropna().tolist(), index=None)
 
