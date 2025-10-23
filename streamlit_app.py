@@ -168,7 +168,7 @@ if lista_tiendas:
             st.error("⚠️ Debes completar los campos obligatorios antes de registrar.")
         else:
             # Ajuste de hora a Colombia (UTC-5)
-            hora_local = datetime.now(timezone.utc) - timedelta(hours=5)
+            hora_local = datetime.now - timedelta(hours=5)
 
             nueva_fila = [
                 lista_tiendas, str(fecha), str(hora),
