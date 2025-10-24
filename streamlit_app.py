@@ -112,12 +112,13 @@ if lista_tiendas:
     lista_vigilantes = st.selectbox(
         "👮 Nombre del vigilante",
         vigilantes_df["NOMBRE VIGILANTE"].dropna().tolist(),
+        placeholder = "Indica el nombre del vigilante",
         index=None
     )
 
     pisos = st.radio(
         "🏬 Piso", 
-        ["Piso 1", "Piso 2", "Piso 3", "Pecera"],
+        ["Piso 1", "Piso 2", "Piso 3", "Pecera/Sótano"],
         horizontal=True,
         index=None
     )
@@ -128,13 +129,13 @@ if lista_tiendas:
         horizontal=True,
         index=None
     )
-
-    area = st.radio(
+    if ubicacion == "Solicitud":
+        area = st.radio(
         "🗂️ Área que solicita", 
         ["CX", "Recovery", "Olvido Cliente", "Fulfillment", "BNO", "S&S", "Sales", "Duty Manager"],
         horizontal=True,
         index=None
-    )
+        )
 
     nombre_cw = st.text_input("👤 Nombre del Coworker")
     pos_cw = st.text_input("💻 Número de POS")
@@ -144,7 +145,7 @@ if lista_tiendas:
         except Exception as e:
             st.warning(f"⚠️ Solo debes ingresar el número de la POS")   
 
-    lista_sku = st.selectbox("📦 SKU", df_sku["SKU"].dropna().tolist(), index=None)
+    lista_sku = st.selectbox("📦 SKU", df_sku["SKU"].dropna().tolist(),placeholder= "Ingresa el SKU del producto",index=None)
 
     if lista_sku:
         producto = df_sku.loc[df_sku["SKU"] == lista_sku, "ITEM"].iloc[0]
