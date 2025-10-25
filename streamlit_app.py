@@ -8,16 +8,6 @@ st.set_page_config(
     layout="centered"
 )
 
-# Encabezado principal
-st.title("📋 Sistema de Registro y Control")
-st.markdown("""
-Bienvenido al sistema de **gestión de reportes de seguridad**.
-
-Este aplicativo permite registrar, consultar y analizar información 
-relacionada con los casos de seguridad en tiendas.
-
----           
-""")
 # === SIDEBAR ===
 with st.sidebar:
     st.header("🧭 Navegación")
@@ -62,7 +52,7 @@ elif pagina == "📦 Registro":
         if st.button("🏗️ Auditoría Warehouse"):
             st.switch_page("3_auditoria_warehouse")
 
-"""
+
 # --- Botón principal: Registro ---
 st.subheader("📝 Registro")
 st.write("Diligencia los formatos de recuperaciones y casos detectados.")
@@ -98,4 +88,4 @@ st.markdown("---")
 st.subheader("⚙️ Configuración")
 st.write("Administra listas de SKU, usuarios o parámetros del sistema.")
 if st.button("⚙️ Ir a Configuración ➜", key="configuracion"):
-    st.switch_page("4_configuracion")"""
+    st.switch_page("4_configuracion")
