@@ -44,10 +44,10 @@ elif pagina == "📦 Registro":
     col1, col2, col3 = st.columns(3)
     with col1:
         if st.button("🧾 Recuperaciones CCTV"):
-            st.switch_page("1_recuperaciones_cctv")
+            st.switch_page("pages/1_recuperaciones_cctv.py")
     with col2:
         if st.button("📋 Auditoría Recibo"):
-            st.switch_page("2_auditoria_recibo")
+            st.switch_page("pages/2_auditoria_recibo.py")
     with col3:
         if st.button("🏗️ Auditoría Warehouse"):
-            st.switch_page("3_auditoria_warehouse")
+            st.switch_page("pages/3_auditoria_warehouse.py")
