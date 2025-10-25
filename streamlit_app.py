@@ -9,26 +9,13 @@ st.set_page_config(
 
 # === SIDEBAR ===
 st.sidebar.title("📂 Navegación")
-main_page = st.sidebar.radio(
+page = st.sidebar.radio(
     "Selecciona un módulo:",
     ["🏠 Inicio", "📋 Registro", "🔍 Consulta", "📊 Reportes", "⚙️ Configuración"]
 )
 
-# === FUNCIÓN PARA CARGAR SUBPÁGINAS ===
-def cargar_pagina(nombre_modulo):
-    try:
-        modulo = importlib.import_module(nombre_modulo)
-        if hasattr(modulo, "run"):
-            modulo.run()  # ejecuta función run() del módulo
-        else:
-            st.warning(f"⚠️ El módulo `{nombre_modulo}` no tiene una función run().")
-    except ModuleNotFoundError:
-        st.error(f"❌ No se encontró el módulo `{nombre_modulo}`.")
-    except Exception as e:
-        st.error(f"⚠️ Error al cargar la página: {e}")
-
-# === INICIO ===
-if main_page == "🏠 Inicio":
+# === PÁGINA PRINCIPAL ===
+if page == "🏠 Inicio":
     st.title("🎥 Sistema de Control CCTV")
     st.markdown("---")
     st.header("🧭 Cómo navegar")
@@ -41,39 +28,44 @@ if main_page == "🏠 Inicio":
     """)
 
 # === REGISTRO ===
-elif main_page == "📋 Registro":
+elif page == "📋 Registro":
     st.title("📋 Registro de actividades")
+    st.write("Selecciona el formulario que deseas abrir:")
 
-    # Inicializamos el estado de la subpágina si no existe
+    col1, col2, col3 = st.columns(3)
+
     if "subpage" not in st.session_state:
         st.session_state["subpage"] = None
 
-    # Si no hay subpágina seleccionada, mostramos los botones
-    if st.session_state["subpage"] is None:
-        st.write("Selecciona el formulario que deseas abrir:")
+    with col1:
+        if st.button("🧾 Recuperaciones CCTV"):
+            st.session_state["subpage"] = "pages.p1_recuperaciones_cctv"
 
-        col1, col2, col3 = st.columns(3)
+    with col2:
+        if st.button("📦 Auditoría Recibo"):
+            st.session_state["subpage"] = "pages.p2_auditoria_recibo"
 
-        with col1:
-            if st.button("🧾 Recuperaciones CCTV"):
-                st.session_state["subpage"] = "pages.1_recuperaciones_cctv"
+    with col3:
+        if st.button("🏭 Auditoría Warehouse"):
+            st.session_state["subpage"] = "pages.p3_auditoria_warehouse"
 
-        with col2:
-            if st.button("📦 Auditoría Recibo"):
-                st.session_state["subpage"] = "pages.2_auditoria_recibo"
+    # Si se seleccionó un submódulo, lo carga dinámicamente
+    if st.session_state["subpage"]:
+        try:
+            module = importlib.import_module(st.session_state["subpage"])
+            module.main()  # cada subpágina debe tener una función main()
+        except Exception as e:
+            st.error(f"No se pudo cargar el módulo: {st.session_state['subpage']}")
+            st.exception(e)
 
-        with col3:
-            if st.button("🏭 Auditoría Warehouse"):
-                st.session_state["subpage"] = "pages.3_auditoria_warehouse"
+# === CONSULTA ===
+elif page == "🔍 Consulta":
+    st.info("🔍 Módulo de consulta aún en desarrollo.")
 
-    # Si ya hay una subpágina seleccionada, la mostramos
-    else:
-        import importlib
+# === REPORTES ===
+elif page == "📊 Reportes":
+    st.info("📊 Módulo de reportes aún en desarrollo.")
 
-        module = importlib.import_module(st.session_state["subpage"])
-        module.run()
-
-        # Botón para volver al menú principal
-        st.markdown("---")
-        if st.button("⬅️ Volver al menú de registro"):
-            st.session_state["subpage"] = None
+# === CONFIGURACIÓN ===
+elif page == "⚙️ Configuración":
+    st.info("⚙️ Módulo de configuración aún en desarrollo.")
