@@ -5,7 +5,7 @@ from google.oauth2 import service_account
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-def run()  
+def run():
     # === CONFIGURACIÓN ===
     st.title("🧾 Formato para reporte de Recepción en bodega")
     
@@ -125,3 +125,4 @@ def run()
     
             st.success("✅ Información registrada correctamente.")
     
+
