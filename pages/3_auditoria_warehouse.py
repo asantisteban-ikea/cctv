@@ -28,7 +28,7 @@ def run():
     # === CARGA DE HOJAS ===
     df_sku = load_worksheet_data("HFB")
     df_sku["SKU"] = df_sku["SKU"].astype(str).str.zfill(8)
-    df_usuarioswh = load_worksheet_data("USUARIO WH")
+    df_usuarioswh = load_worksheet_data("USUARIOS WH")
     recuperaciones_ws = sh.worksheet("WAREHOUSE")
     
     # === INTERFAZ ===
@@ -232,3 +232,4 @@ def run():
             recuperaciones_ws.append_row(nueva_fila)
             st.success("✅ Información registrada correctamente.")
     
+
