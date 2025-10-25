@@ -2,7 +2,7 @@ import streamlit as st
 
 st.set_page_config(
     page_title="Sistema CCTV",
-    page_icon="👁️",
+    page_icon="🎥",
     layout="centered"
 )
 
@@ -15,7 +15,7 @@ page = st.sidebar.radio(
 
 # === PÁGINA PRINCIPAL ===
 if page == "🏠 Inicio":
-    st.title("👁️ Sistema de Control CCTV")
+    st.title("🎥 Sistema de Control CCTV")
     st.markdown("---")
     st.header("🧭 Cómo navegar")
     st.markdown("""
@@ -36,18 +36,15 @@ elif page == "📋 Registro":
     # botones de navegación interna
     with col1:
         if st.button("🧾 Recuperaciones CCTV"):
-            st.session_state["page"] = "Recuperaciones"
-            st.markdown("[Abrir Recuperaciones CCTV](./1_recuperaciones_cctv)")
+            st.session_state["page"] = "./1_recuperaciones_cctv"
 
     with col2:
         if st.button("📦 Auditoría Recibo"):
-            st.session_state["page"] = "Recibo"
-            st.markdown("[Abrir Auditoría Recibo](./2_auditoria_recibo)")
+            st.session_state["page"] = "./2_auditoria_recibo"
 
     with col3:
         if st.button("🏭 Auditoría Warehouse"):
-            st.session_state["page"] = "Warehouse"
-            st.markdown("[Abrir Auditoría Warehouse](./3_auditoria_warehouse)")
+            st.session_state["page"] = "./3_auditoria_warehouse"
 
 # === CONSULTA ===
 elif page == "🔍 Consulta":
