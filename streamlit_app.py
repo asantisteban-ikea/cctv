@@ -39,15 +39,15 @@ elif page == "📋 Registro":
 
     with col1:
         if st.button("🧾 Recuperaciones CCTV"):
-            st.session_state["subpage"] = "pages.p1_recuperaciones_cctv"
+            st.session_state["subpage"] = "pages.1_recuperaciones_cctv"
 
     with col2:
         if st.button("📦 Auditoría Recibo"):
-            st.session_state["subpage"] = "pages.p2_auditoria_recibo"
+            st.session_state["subpage"] = "pages.2_auditoria_recibo"
 
     with col3:
         if st.button("🏭 Auditoría Warehouse"):
-            st.session_state["subpage"] = "pages.p3_auditoria_warehouse"
+            st.session_state["subpage"] = "pages.3_auditoria_warehouse"
 
     # Si se seleccionó un submódulo, lo carga dinámicamente
     if st.session_state["subpage"]:
@@ -69,3 +69,4 @@ elif page == "📊 Reportes":
 # === CONFIGURACIÓN ===
 elif page == "⚙️ Configuración":
     st.info("⚙️ Módulo de configuración aún en desarrollo.")
+
