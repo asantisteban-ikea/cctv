@@ -41,41 +41,39 @@ if main_page == "🏠 Inicio":
     """)
 
 # === REGISTRO ===
-elif main_page == "📋 Registro":
+elif page == "📋 Registro":
     st.title("📋 Registro de actividades")
-    st.write("Selecciona el formulario que deseas abrir:")
 
-    col1, col2, col3 = st.columns(3)
-
+    # Inicializamos el estado de la subpágina si no existe
     if "subpage" not in st.session_state:
         st.session_state["subpage"] = None
 
-    with col1:
-        if st.button("🧾 Recuperaciones CCTV"):
-            st.session_state["subpage"] = "pages.1_recuperaciones_cctv"
+    # Si no hay subpágina seleccionada, mostramos los botones
+    if st.session_state["subpage"] is None:
+        st.write("Selecciona el formulario que deseas abrir:")
 
-    with col2:
-        if st.button("📦 Auditoría Recibo"):
-            st.session_state["subpage"] = "pages.2_auditoria_recibo"
+        col1, col2, col3 = st.columns(3)
 
-    with col3:
-        if st.button("🏭 Auditoría Warehouse"):
-            st.session_state["subpage"] = "pages.3_auditoria_warehouse"
+        with col1:
+            if st.button("🧾 Recuperaciones CCTV"):
+                st.session_state["subpage"] = "pages.1_recuperaciones_cctv"
 
-    # Cargar la subpágina seleccionada
-    if st.session_state["subpage"]:
+        with col2:
+            if st.button("📦 Auditoría Recibo"):
+                st.session_state["subpage"] = "pages.2_auditoria_recibo"
+
+        with col3:
+            if st.button("🏭 Auditoría Warehouse"):
+                st.session_state["subpage"] = "pages.3_auditoria_warehouse"
+
+    # Si ya hay una subpágina seleccionada, la mostramos
+    else:
+        import importlib
+
+        module = importlib.import_module(st.session_state["subpage"])
+        module.run()
+
+        # Botón para volver al menú principal
         st.markdown("---")
-        cargar_pagina(st.session_state["subpage"])
-
-# === CONSULTA ===
-elif main_page == "🔍 Consulta":
-    st.info("🔍 Módulo de consulta aún en desarrollo.")
-
-# === REPORTES ===
-elif main_page == "📊 Reportes":
-    st.info("📊 Módulo de reportes aún en desarrollo.")
-
-# === CONFIGURACIÓN ===
-elif main_page == "⚙️ Configuración":
-    st.info("⚙️ Módulo de configuración aún en desarrollo.")
-
+        if st.button("⬅️ Volver al menú de registro"):
+            st.session_state["subpage"] = None
