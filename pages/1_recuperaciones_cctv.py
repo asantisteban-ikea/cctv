@@ -5,191 +5,178 @@ from google.oauth2 import service_account
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-def main():
-    # === CONFIGURACIÓN ===
-    st.title("🧾 Formato para reporte de Recuperaciones")
 
-    # === CREDENCIALES ===
-    credentials = service_account.Credentials.from_service_account_info(
-        st.secrets["connections"]["gsheets"]["credentials"],
-        scopes=["https://www.googleapis.com/auth/spreadsheets"]
-    )
+# === CONFIGURACIÓN ===
+st.title("🧾 Formato para reporte de Recuperaciones")
 
-    gc = gspread.authorize(credentials)
-    spreadsheet_id = st.secrets["connections"]["gsheets"]["spreadsheet"]
-    sh = gc.open_by_key(spreadsheet_id)
+# === CREDENCIALES ===
+credentials = service_account.Credentials.from_service_account_info(
+    st.secrets["connections"]["gsheets"]["credentials"],
+    scopes=["https://www.googleapis.com/auth/spreadsheets"]
+)
 
-    # === CARGA DE DATOS CON CACHE (TTL = 7 días) ===
-    @st.cache_data(ttl=7*24*60*60)  # 7 días en segundos
-    def load_worksheet_data(sheet_name):
-        ws = sh.worksheet(sheet_name)
-        return pd.DataFrame(ws.get_all_records())
+gc = gspread.authorize(credentials)
+spreadsheet_id = st.secrets["connections"]["gsheets"]["spreadsheet"]
+sh = gc.open_by_key(spreadsheet_id)
 
-    # === CARGA DE HOJAS ===
-    df_vigilantes = load_worksheet_data("VIGILANTES")
-    df_sku = load_worksheet_data("HFB")
-    df_sku["SKU"] = df_sku["SKU"].astype(str).str.zfill(8)
-    recuperaciones_ws = sh.worksheet("RECUPERACIONES")
+# === CARGA DE DATOS CON CACHE (TTL = 7 días) ===
+@st.cache_data(ttl=7*24*60*60)  # 7 días en segundos
+def load_worksheet_data(sheet_name):
+    ws = sh.worksheet(sheet_name)
+    return pd.DataFrame(ws.get_all_records())
 
-    # === SESIÓN ===
-    if "reset" not in st.session_state:
-        st.session_state.reset = False
+# === CARGA DE HOJAS ===
+df_vigilantes = load_worksheet_data("VIGILANTES")
+df_sku = load_worksheet_data("HFB")
+df_sku["SKU"] = df_sku["SKU"].astype(str).str.zfill(8)
+recuperaciones_ws = sh.worksheet("RECUPERACIONES")
 
-    def reset_form():
-        for key in list(st.session_state.keys()):
-            if key != "reset":
-                del st.session_state[key]
-        st.session_state.reset = True
+# === INTERFAZ ===
+lista_tiendas = st.selectbox(
+    "Elige una de las tiendas",
+    ["IKEA NQS", "IKEA MALLPLAZA CALI", "IKEA ENVIGADO"],
+    placeholder="Selecciona una tienda",
+    index=None
+)
 
-    # === INTERFAZ ===
-    lista_tiendas = st.selectbox(
-        "Elige una de las tiendas",
-        ["IKEA NQS", "IKEA MALLPLAZA CALI", "IKEA ENVIGADO"],
-        placeholder="Selecciona una tienda",
+if lista_tiendas:
+    match lista_tiendas:
+        case "IKEA NQS":
+            id_tienda = 1
+        case "IKEA MALLPLAZA CALI":
+            id_tienda = 2
+        case "IKEA ENVIGADO":
+            id_tienda = 3
+
+    fecha = st.date_input("📅 Fecha de la recuperación", value=None)
+    hora = st.time_input("🕒 Hora de la recuperación", value=None)
+
+    if fecha and hora:
+        horas = hora.hour
+        rango_horas = f"{horas} - {horas+1}"
+        mes = fecha.month
+        dia = fecha.weekday()
+        
+        match mes:
+            case 1:
+                mes = "Enero"
+            case 2:
+                mes = "Febrero"
+            case 3:
+                mes = "Marzo"
+            case 4:
+                mes = "Abril"
+            case 5:
+                mes = "Mayo"
+            case 6:
+                mes = "Junio"
+            case 7:
+                mes = "Julio"
+            case 8:
+                mes = "Agosto"
+            case 9:
+                mes = "Septiembre"
+            case 10:
+                mes = "Octubre"
+            case 11:
+                mes = "Noviembre"
+            case 12:
+                mes = "Diciembre"
+                    
+        match dia:
+            case 0:
+                dia = "Lunes"
+            case 1:
+                dia = "Martes"
+            case 2:
+                dia = "Miercoles"
+            case 3:
+                dia = "Jueves"
+            case 4:
+                dia = "Viernes"
+            case 5:
+                dia = "Sabado"
+            case 6:
+                dia = "Domingo"
+
+    vigilantes_df = df_vigilantes[df_vigilantes["ID_TIENDA"] == id_tienda]
+    lista_vigilantes = st.selectbox(
+        "👮 Nombre del vigilante",
+        vigilantes_df["NOMBRE VIGILANTE"].dropna().tolist(),
+        placeholder = "Indica el nombre del vigilante",
         index=None
     )
 
-    if lista_tiendas:
-        match lista_tiendas:
-            case "IKEA NQS":
-                id_tienda = 1
-            case "IKEA MALLPLAZA CALI":
-                id_tienda = 2
-            case "IKEA ENVIGADO":
-                id_tienda = 3
+    pisos = st.radio(
+        "🏬 Piso", 
+        ["Piso 1", "Piso 2", "Piso 3", "Pecera/Sótano"],
+        horizontal=True,
+        index=None
+    )
 
-        fecha = st.date_input("📅 Fecha de la recuperación", value=None)
-        hora = st.time_input("🕒 Hora de la recuperación", value=None)
-
-        if fecha and hora:
-            horas = hora.hour
-            rango_horas = f"{horas} - {horas+1}"
-            mes = fecha.month
-            dia = fecha.weekday()
-            
-            match mes:
-                case 1:
-                    mes = "Enero"
-                case 2:
-                    mes = "Febrero"
-                case 3:
-                    mes = "Marzo"
-                case 4:
-                    mes = "Abril"
-                case 5:
-                    mes = "Mayo"
-                case 6:
-                    mes = "Junio"
-                case 7:
-                    mes = "Julio"
-                case 8:
-                    mes = "Agosto"
-                case 9:
-                    mes = "Septiembre"
-                case 10:
-                    mes = "Octubre"
-                case 11:
-                    mes = "Noviembre"
-                case 12:
-                    mes = "Diciembre"
-                        
-            match dia:
-                case 0:
-                    dia = "Lunes"
-                case 1:
-                    dia = "Martes"
-                case 2:
-                    dia = "Miercoles"
-                case 3:
-                    dia = "Jueves"
-                case 4:
-                    dia = "Viernes"
-                case 5:
-                    dia = "Sabado"
-                case 6:
-                    dia = "Domingo"
-
-        vigilantes_df = df_vigilantes[df_vigilantes["ID_TIENDA"] == id_tienda]
-        lista_vigilantes = st.selectbox(
-            "👮 Nombre del vigilante",
-            vigilantes_df["NOMBRE VIGILANTE"].dropna().tolist(),
-            placeholder = "Indica el nombre del vigilante",
-            index=None
+    ubicacion = st.radio(
+        "📍 Ubicación",
+        ["Antenas", "Autopago", "Auditoria", "Cajas Asistidas", "Check Out", "Solicitud"],
+        horizontal=True,
+        index=None
+    )
+    if ubicacion == "Solicitud":
+        area = st.radio(
+        "🗂️ Área que solicita", 
+        ["CX", "Recovery", "Olvido Cliente", "Fulfillment", "BNO", "S&S", "Sales", "Duty Manager"],
+        horizontal=True,
+        index=None
         )
 
-        pisos = st.radio(
-            "🏬 Piso", 
-            ["Piso 1", "Piso 2", "Piso 3", "Pecera/Sótano"],
-            horizontal=True,
-            index=None
-        )
+    nombre_cw = st.text_input("👤 Nombre del Coworker")
+    pos_cw = st.text_input("💻 Número de POS")
+    if pos_cw:
+        try:
+            pos_cw = int(pos_cw)
+        except Exception as e:
+            st.warning(f"⚠️ Solo debes ingresar el número de la POS")   
 
-        ubicacion = st.radio(
-            "📍 Ubicación",
-            ["Antenas", "Autopago", "Auditoria", "Cajas Asistidas", "Check Out", "Solicitud"],
-            horizontal=True,
-            index=None
-        )
-        if ubicacion == "Solicitud":
-            area = st.radio(
-            "🗂️ Área que solicita", 
-            ["CX", "Recovery", "Olvido Cliente", "Fulfillment", "BNO", "S&S", "Sales", "Duty Manager"],
-            horizontal=True,
-            index=None
-            )
+    lista_sku = st.selectbox(
+        "📦 SKU", 
+        df_sku["SKU"].dropna().tolist(),
+        placeholder= "Ingresa el SKU del producto",
+        accept_new_options=True,
+        index=None)
 
-        nombre_cw = st.text_input("👤 Nombre del Coworker")
-        pos_cw = st.text_input("💻 Número de POS")
-        if pos_cw:
-            try:
-                pos_cw = int(pos_cw)
-            except Exception as e:
-                st.warning(f"⚠️ Solo debes ingresar el número de la POS")   
+    if lista_sku:
+        producto = df_sku.loc[df_sku["SKU"] == lista_sku, "ITEM"].iloc[0]
+        familia = df_sku.loc[df_sku["SKU"] == lista_sku, "FAMILIA"].iloc[0]
+        st.info(f"🛒 Producto: **{producto}**, Familia: **{familia}**")
+        if len(lista_sku) != 8:
+            st.warning("👉 Verifica la cantidad de digitos que tiene este nuevo codigo")
+    else:
+        st.warning("⚠️ Debes seleccionar uno de los SKU de las opciones")
 
-        lista_sku = st.selectbox(
-            "📦 SKU", 
-            df_sku["SKU"].dropna().tolist(),
-            placeholder= "Ingresa el SKU del producto",
-            accept_new_options=True,
-            index=None)
+    cantidad = st.number_input("📊 Cantidad", min_value=1, value=1)
+    pvp = st.number_input("💰 Valor unitario", min_value=0, value=0)
+    total = cantidad * pvp
+    st.write(f"**Total:** ${total:,.0f}")
 
-        if lista_sku:
-            producto = df_sku.loc[df_sku["SKU"] == lista_sku, "ITEM"].iloc[0]
-            familia = df_sku.loc[df_sku["SKU"] == lista_sku, "FAMILIA"].iloc[0]
-            st.info(f"🛒 Producto: **{producto}**, Familia: **{familia}**")
-            if len(lista_sku) != 8:
-                st.warning("👉 Verifica la cantidad de digitos que tiene este nuevo codigo")
+    descripcion = st.text_area("📝 Descripción del caso")
+
+
+    if st.button("📤 Registrar"):
+        # Validar campos obligatorios
+        if not lista_tiendas or not lista_sku or not cantidad:
+            st.error("⚠️ Debes completar los campos obligatorios antes de registrar.")
         else:
-            st.warning("⚠️ Debes seleccionar uno de los SKU de las opciones")
+            # Ajuste de hora a Colombia (UTC-5)
+            hora_local = datetime.now(ZoneInfo("America/Bogota"))
+            fecha_registro = (datetime.utcnow() - timedelta(hours=5)).strftime("%Y-%m-%d %H:%M:%S")
 
-        cantidad = st.number_input("📊 Cantidad", min_value=1, value=1)
-        pvp = st.number_input("💰 Valor unitario", min_value=0, value=0)
-        total = cantidad * pvp
-        st.write(f"**Total:** ${total:,.0f}")
+            nueva_fila = [
+                hora_local.strftime("%Y-%m-%d %H:%M:%S"),
+                lista_tiendas, str(fecha), str(hora),
+                lista_vigilantes, pisos, ubicacion, area,
+                nombre_cw, pos_cw, lista_sku, familia, 
+                producto, cantidad, pvp, total, descripcion,
+                mes, dia, rango_horas
+            ]
 
-        descripcion = st.text_area("📝 Descripción del caso")
-
-
-        if st.button("📤 Registrar"):
-            # Validar campos obligatorios
-            if not lista_tiendas or not lista_sku or not cantidad:
-                st.error("⚠️ Debes completar los campos obligatorios antes de registrar.")
-            else:
-                # Ajuste de hora a Colombia (UTC-5)
-                hora_local = datetime.now(ZoneInfo("America/Bogota"))
-                fecha_registro = (datetime.utcnow() - timedelta(hours=5)).strftime("%Y-%m-%d %H:%M:%S")
-
-                nueva_fila = [
-                    hora_local.strftime("%Y-%m-%d %H:%M:%S"),
-                    lista_tiendas, str(fecha), str(hora),
-                    lista_vigilantes, pisos, ubicacion, area,
-                    nombre_cw, pos_cw, lista_sku, familia, 
-                    producto, cantidad, pvp, total, descripcion,
-                    mes, dia, rango_horas
-                ]
-
-                recuperaciones_ws.append_row(nueva_fila)
-                st.success("✅ Información registrada correctamente.")
-
-                # 🔄 Limpiar campos
-                reset_form()
+            recuperaciones_ws.append_row(nueva_fila)
+            st.success("✅ Información registrada correctamente.")
