@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
     
 def run():    
     # === CONFIGURACIÓN ===
-    st.title("🧾 Formato para reporte de Recuperaciones")
+    st.title("🧾 Formato para reporte de Auditorías en Warehouse")
     
     # === CREDENCIALES ===
     credentials = service_account.Credentials.from_service_account_info(
@@ -232,4 +232,5 @@ def run():
             recuperaciones_ws.append_row(nueva_fila)
             st.success("✅ Información registrada correctamente.")
     
+
 
