@@ -145,12 +145,19 @@ if lista_tiendas:
         except Exception as e:
             st.warning(f"⚠️ Solo debes ingresar el número de la POS")   
 
-    lista_sku = st.selectbox("📦 SKU", df_sku["SKU"].dropna().tolist(),placeholder= "Ingresa el SKU del producto",index=None)
+    lista_sku = st.selectbox(
+        "📦 SKU", 
+        df_sku["SKU"].dropna().tolist(),
+        placeholder= "Ingresa el SKU del producto",
+        accept_new_options=True,
+        index=None)
 
     if lista_sku:
         producto = df_sku.loc[df_sku["SKU"] == lista_sku, "ITEM"].iloc[0]
         familia = df_sku.loc[df_sku["SKU"] == lista_sku, "FAMILIA"].iloc[0]
         st.info(f"🛒 Producto: **{producto}**, Familia: **{familia}**")
+        if len(lista_sku) != 8:
+            st.warning("👉 Verifica la cantidad de digitos que tiene este nuevo codigo")
     else:
         st.warning("⚠️ Debes seleccionar uno de los SKU de las opciones")
 
