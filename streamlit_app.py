@@ -9,13 +9,26 @@ st.set_page_config(
 
 # === SIDEBAR ===
 st.sidebar.title("📂 Navegación")
-page = st.sidebar.radio(
+main_page = st.sidebar.radio(
     "Selecciona un módulo:",
     ["🏠 Inicio", "📋 Registro", "🔍 Consulta", "📊 Reportes", "⚙️ Configuración"]
 )
 
-# === PÁGINA PRINCIPAL ===
-if page == "🏠 Inicio":
+# === FUNCIÓN PARA CARGAR SUBPÁGINAS ===
+def cargar_pagina(nombre_modulo):
+    try:
+        modulo = importlib.import_module(nombre_modulo)
+        if hasattr(modulo, "run"):
+            modulo.run()  # ejecuta función run() del módulo
+        else:
+            st.warning(f"⚠️ El módulo `{nombre_modulo}` no tiene una función run().")
+    except ModuleNotFoundError:
+        st.error(f"❌ No se encontró el módulo `{nombre_modulo}`.")
+    except Exception as e:
+        st.error(f"⚠️ Error al cargar la página: {e}")
+
+# === INICIO ===
+if main_page == "🏠 Inicio":
     st.title("🎥 Sistema de Control CCTV")
     st.markdown("---")
     st.header("🧭 Cómo navegar")
@@ -28,7 +41,7 @@ if page == "🏠 Inicio":
     """)
 
 # === REGISTRO ===
-elif page == "📋 Registro":
+elif main_page == "📋 Registro":
     st.title("📋 Registro de actividades")
     st.write("Selecciona el formulario que deseas abrir:")
 
@@ -49,24 +62,19 @@ elif page == "📋 Registro":
         if st.button("🏭 Auditoría Warehouse"):
             st.session_state["subpage"] = "pages.3_auditoria_warehouse"
 
-    # Si se seleccionó un submódulo, lo carga dinámicamente
+    # Cargar la subpágina seleccionada
     if st.session_state["subpage"]:
-        try:
-            module = importlib.import_module(st.session_state["subpage"])
-            module.main()  # cada subpágina debe tener una función main()
-        except Exception as e:
-            st.error(f"No se pudo cargar el módulo: {st.session_state['subpage']}")
-            st.exception(e)
+        st.markdown("---")
+        cargar_pagina(st.session_state["subpage"])
 
 # === CONSULTA ===
-elif page == "🔍 Consulta":
+elif main_page == "🔍 Consulta":
     st.info("🔍 Módulo de consulta aún en desarrollo.")
 
 # === REPORTES ===
-elif page == "📊 Reportes":
+elif main_page == "📊 Reportes":
     st.info("📊 Módulo de reportes aún en desarrollo.")
 
 # === CONFIGURACIÓN ===
-elif page == "⚙️ Configuración":
+elif main_page == "⚙️ Configuración":
     st.info("⚙️ Módulo de configuración aún en desarrollo.")
-
