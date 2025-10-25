@@ -41,7 +41,7 @@ if main_page == "🏠 Inicio":
     """)
 
 # === REGISTRO ===
-elif page == "📋 Registro":
+elif main_page == "📋 Registro":
     st.title("📋 Registro de actividades")
 
     # Inicializamos el estado de la subpágina si no existe
