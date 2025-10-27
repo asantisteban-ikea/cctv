@@ -120,16 +120,16 @@ def run():
             horizontal=True,
             index=None
         )
-        
+        area = "No aplica"
         if ubicacion == "Solicitud":
-            st.session_state["area"] = st.radio(
+            area = st.radio(
                 "🗂️ Área que solicita",
                 ["CX", "Recovery", "Olvido Cliente", "Fulfillment", "BNO", "S&S", "Sales", "Duty Manager"],
                 horizontal=True,
                 index=None
             )
         else:
-            st.session_state["area"] = "No aplica"
+            area = "No aplica"
     
         nombre_cw = st.text_input("👤 Nombre del Coworker")
         pos_cw = st.text_input("💻 Número de POS")
