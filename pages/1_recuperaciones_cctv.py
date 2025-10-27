@@ -120,7 +120,7 @@ def run():
             horizontal=True,
             index=None
         )
-        area = ""
+        area = None
         if ubicacion == "Solicitud":
             area = st.radio(
             "🗂️ Área que solicita", 
@@ -128,8 +128,7 @@ def run():
             horizontal=True,
             index=None
             )
-        else:
-            area = ""
+        st.write(area)
     
         nombre_cw = st.text_input("👤 Nombre del Coworker")
         pos_cw = st.text_input("💻 Número de POS")
