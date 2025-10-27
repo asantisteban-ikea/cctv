@@ -78,3 +78,4 @@ elif main_page == "📊 Reportes":
 # === CONFIGURACIÓN ===
 elif main_page == "⚙️ Configuración":
     st.info("⚙️ Módulo de configuración aún en desarrollo.")
+
