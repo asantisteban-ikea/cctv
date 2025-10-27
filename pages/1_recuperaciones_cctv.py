@@ -163,7 +163,7 @@ def run():
     
         if st.button("📤 Registrar"):
             # Validar campos obligatorios
-            if not lista_tiendas or not lista_sku or not cantidad:
+            if not lista_tiendas or not lista_sku or not cantidad or not pvp:
                 st.error("⚠️ Debes completar los campos obligatorios antes de registrar.")
             else:
                 # Ajuste de hora a Colombia (UTC-5)
