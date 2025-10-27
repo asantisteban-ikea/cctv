@@ -120,16 +120,25 @@ def run():
             horizontal=True,
             index=None
         )
-        area = "No aplica"
-        if ubicacion == "Solicitud":
-            area = st.radio(
-                "🗂️ Área que solicita",
-                ["CX", "Recovery", "Olvido Cliente", "Fulfillment", "BNO", "S&S", "Sales", "Duty Manager"],
-                horizontal=True,
-                index=None
-            )
-        else:
-            area = "No aplica"
+        # === ÁREA QUE SOLICITA ===
+        # Inicializar valor por defecto
+        if "area" not in st.session_state:
+            st.session_state["area"] = "No aplica"
+        
+        # Si el usuario ya seleccionó ubicación
+        if ubicacion:
+            if ubicacion == "Solicitud":
+                st.session_state["area"] = st.radio(
+                    "🗂️ Área que solicita",
+                    ["CX", "Recovery", "Olvido Cliente", "Fulfillment", "BNO", "S&S", "Sales", "Duty Manager"],
+                    horizontal=True,
+                    index=None
+                )
+            else:
+                st.session_state["area"] = "No aplica"
+
+# Siempre define la variable local (aunque no haya selección)
+area = st.session_state.get("area", "No aplica")
     
         nombre_cw = st.text_input("👤 Nombre del Coworker")
         pos_cw = st.text_input("💻 Número de POS")
