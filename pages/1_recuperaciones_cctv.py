@@ -120,6 +120,7 @@ def run():
             horizontal=True,
             index=None
         )
+        area = ""
         if ubicacion == "Solicitud":
             area = st.radio(
             "🗂️ Área que solicita", 
