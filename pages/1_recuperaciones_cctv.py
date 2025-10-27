@@ -120,7 +120,10 @@ def run():
             horizontal=True,
             index=None
         )
-        area = "No aplica"
+        
+        if "area" not in st.session_state:
+            st.session_state["area"] = "No aplica"
+        
         if ubicacion == "Solicitud":
             area = st.radio(
             "🗂️ Área que solicita", 
